@@ -86,12 +86,14 @@ class Source(Base):
 
         # search for .clang file
         path = os.path.dirname(self.vim.current.buffer.name)
-        while not os.path.isfile(path + "/.clang"):
+        while not (os.path.isfile(path + "/.clang")  or \
+                   os.path.isfile(path + "/compile_commands.json")):
             if path == "/":
                 break
             path = os.path.realpath(path + "/..")
 
         path2 = path + "/.clang"
+        path_com = path + "/compile_commands.json"
         if os.path.isfile(path2):
             flags_file = open(path2)
             flags = flags_file.read().rstrip()
@@ -108,6 +110,9 @@ class Source(Base):
                         clang_complete_database = path3
                     else:
                         clang_complete_database = path+"/"+path3
+
+        elif os.path.isfile(path_com):
+            clang_complete_database = path
 
         if clang_complete_database and os.path.isdir(clang_complete_database):
             self.compilation_database = \
