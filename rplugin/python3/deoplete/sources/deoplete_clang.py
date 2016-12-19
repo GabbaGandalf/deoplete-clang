@@ -100,6 +100,7 @@ class Source(Base):
             m = re.match(r'^flags\s*=\s*', flags)
             if m is not None:
                 self.completion_flags = flags[m.end():].split()
+                self.neomake_flags(context['filetype'])
             else:
                 m = re.match(r'^compilation_database\s*=\s*', flags)
                 if m is not None:
@@ -124,6 +125,20 @@ class Source(Base):
         self.index = clang.Index.create()
         # TODO(zchee): More elegant way
         self.tu_data, self.params, self.database = dict(), dict(), dict()
+
+    def makeStringList(self, lst):
+        strlst = "["
+        for flag in lst:
+            strlst += "\'" + str(flag) + "\',"
+        strlst += "]"
+        return strlst
+
+    def neomake_flags(self, filetype):
+        strlst = self.makeStringList(self.completion_flags)
+        if filetype == 'c':
+            self.vim.command("let g:neomake_c_clang_args = " + strlst)
+        elif filetype == 'cpp':
+            self.vim.command("let g:neomake_cpp_clang_args = " + strlst)
 
     def on_event(self, context):
         # Note: Dummy call to make cache
